@@ -31,3 +31,11 @@ Thumbs.db
 # Test
 coverage/
 .nyc_output/
+.vercel
+
+# Next.js
+.next/
+out/
+
+# Original Claude Design export (kept for reference)
+web/
