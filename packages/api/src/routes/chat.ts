@@ -276,7 +276,7 @@ simpleChatRouter.post('/', async (req: Request, res: Response) => {
 
       try {
         const generator = agentCoreClient.converseStream(
-          'anthropic.claude-sonnet-4-20250514-v1:0',
+          'us.anthropic.claude-sonnet-4-6',
           [{ role: 'user', content: message }],
           rostrSystemPrompt
         );
