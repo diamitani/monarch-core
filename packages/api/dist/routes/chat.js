@@ -192,4 +192,84 @@ router.post('/:projectId/sessions/:sessionId/end', async (req, res) => {
     }
 });
 export default router;
+/**
+ * Simple chat endpoint for workspace UI (no project context required)
+ */
+import { Router as SimpleRouter } from 'express';
+export const simpleChatRouter = SimpleRouter();
+simpleChatRouter.post('/', async (req, res) => {
+    try {
+        const { message } = req.body;
+        if (!message || typeof message !== 'string') {
+            res.status(400).json({
+                success: false,
+                error: { code: 'INVALID_REQUEST', message: 'Message is required' }
+            });
+            return;
+        }
+        logger.info('Simple chat request', { messageLength: message.length });
+        // Compile intent
+        const palOutput = await compile({
+            userPrompt: message,
+            attachments: []
+        });
+        // Generate a plan based on the intent
+        const plan = {
+            id: `plan-${Date.now()}`,
+            objective: palOutput.extractedIntent.primaryIntent || message,
+            status: 'draft',
+            steps: generateStepsFromIntent(palOutput.extractedIntent)
+        };
+        res.json({
+            success: true,
+            response: `I've analyzed your request and created a plan. Review the steps and click "Start Plan" when ready.`,
+            plan,
+            metadata: {
+                agentId: palOutput.manifest.agentId,
+                phase: palOutput.manifest.phase,
+                confidence: palOutput.confidence
+            }
+        });
+    }
+    catch (error) {
+        logger.error('Simple chat failed', error);
+        res.status(500).json({
+            success: false,
+            error: { code: 'CHAT_ERROR', message: error.message }
+        });
+    }
+});
+function generateStepsFromIntent(intent) {
+    const steps = [
+        {
+            id: '1',
+            title: `Research: Gather information about ${intent.subject || 'the topic'}`,
+            description: '',
+            risk: 'safe',
+            status: 'pending'
+        },
+        {
+            id: '2',
+            title: `Analyze: Review findings and identify key considerations`,
+            description: '',
+            risk: 'safe',
+            status: 'pending'
+        },
+        {
+            id: '3',
+            title: `Draft: Create initial outline and recommendations`,
+            description: '',
+            risk: 'safe',
+            status: 'pending'
+        },
+        {
+            id: '4',
+            title: `Finalize: Review and prepare deliverables`,
+            description: '',
+            risk: 'consequential',
+            status: 'pending'
+        }
+    ];
+    return steps;
+}
 //# sourceMappingURL=chat.js.map

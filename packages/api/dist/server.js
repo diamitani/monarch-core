@@ -6,7 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createLogger, API_CONFIG } from '@monarch/shared';
-import { chatRouter, projectsRouter, integrationsRouter } from './routes/index.js';
+import { chatRouter, simpleChatRouter, projectsRouter, integrationsRouter } from './routes/index.js';
 import { authMiddleware, errorHandler, notFoundHandler } from './middleware/index.js';
 const logger = createLogger('server');
 const app = express();
@@ -59,6 +59,7 @@ const apiBase = API_CONFIG.basePath;
 app.use(`${apiBase}/projects`, authMiddleware, projectsRouter);
 app.use(`${apiBase}/projects`, authMiddleware, chatRouter);
 app.use(`${apiBase}/integrations`, authMiddleware, integrationsRouter);
+app.use(`${apiBase}/chat`, simpleChatRouter); // Simple chat - no auth for demo
 // Status endpoint
 app.get(`${apiBase}/status`, (_req, res) => {
     res.json({
