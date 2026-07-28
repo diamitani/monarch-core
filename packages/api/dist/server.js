@@ -7,14 +7,23 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createLogger, API_CONFIG } from '@monarch/shared';
 import { chatRouter, simpleChatRouter, projectsRouter, integrationsRouter } from './routes/index.js';
+import authRouter from './routes/auth.js';
+import { getSkillCatalog } from './routes/skills.js';
 import { authMiddleware, errorHandler, notFoundHandler } from './middleware/index.js';
 const logger = createLogger('server');
 const app = express();
 // Security middleware
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 app.use(cors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-    credentials: true
+    origin: [
+        'http://localhost:3000',
+        'https://web-two-roan-49.vercel.app',
+        'https://monarch-psi.vercel.app',
+        process.env.FRONTEND_URL,
+    ].filter(Boolean),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 // Rate limiting
 const limiter = rateLimit({
@@ -60,6 +69,11 @@ app.use(`${apiBase}/projects`, authMiddleware, projectsRouter);
 app.use(`${apiBase}/projects`, authMiddleware, chatRouter);
 app.use(`${apiBase}/integrations`, authMiddleware, integrationsRouter);
 app.use(`${apiBase}/chat`, simpleChatRouter); // Simple chat - no auth for demo
+app.use(`${apiBase}/auth`, authRouter); // Auth routes
+// Skills catalog
+app.get(`${apiBase}/skills`, (_req, res) => {
+    res.json({ success: true, data: getSkillCatalog() });
+});
 // Status endpoint
 app.get(`${apiBase}/status`, (_req, res) => {
     res.json({
