@@ -17,10 +17,17 @@ const logger = createLogger('server');
 const app: Application = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true
+  origin: [
+    'http://localhost:3000',
+    'https://web-two-roan-49.vercel.app',
+    'https://monarch-psi.vercel.app',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean) as string[],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Rate limiting

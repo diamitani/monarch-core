@@ -278,7 +278,10 @@ router.post('/onboarding/complete', (req: Request, res: Response) => {
     user.onboardingPhase = 'complete';
     users.set(user.id, user);
 
-    logger.info('Onboarding complete', { userId: user.id });
+    // Provision workspace
+    const workspace = provisionWorkspace(user);
+
+    logger.info('Onboarding complete', { userId: user.id, workspaceId: workspace.id });
 
     res.json({
       success: true,
@@ -289,6 +292,7 @@ router.post('/onboarding/complete', (req: Request, res: Response) => {
           name: user.name,
           onboardingPhase: 'complete'
         },
+        workspace,
         dashboard: generateDashboard(user)
       }
     });
@@ -328,8 +332,68 @@ router.get('/me', (req: Request, res: Response) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Helpers
+// Workspace store
 // ─────────────────────────────────────────────────────────────
+
+interface Workspace {
+  id: string;
+  userId: string;
+  name: string;
+  projects: Array<{ id: string; name: string; status: string; createdAt: Date }>;
+  sessions: Array<{ id: string; agentId: string; createdAt: Date }>;
+  createdAt: Date;
+}
+
+const workspaces = new Map<string, Workspace>();
+const userWorkspaces = new Map<string, string>(); // userId → workspaceId
+
+function provisionWorkspace(user: User): Workspace {
+  const existingId = userWorkspaces.get(user.id);
+  if (existingId) return workspaces.get(existingId)!;
+
+  const wsId = `ws_${crypto.randomBytes(8).toString('hex')}`;
+  const workspace: Workspace = {
+    id: wsId,
+    userId: user.id,
+    name: `${user.name}'s Workspace`,
+    projects: [{
+      id: `proj_${crypto.randomBytes(6).toString('hex')}`,
+      name: 'Default Project',
+      status: 'active',
+      createdAt: new Date(),
+    }],
+    sessions: [],
+    createdAt: new Date(),
+  };
+
+  workspaces.set(wsId, workspace);
+  userWorkspaces.set(user.id, wsId);
+  return workspace;
+}
+
+function getWorkspace(userId: string): Workspace | null {
+  const wsId = userWorkspaces.get(userId);
+  return wsId ? workspaces.get(wsId) || null : null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/v1/workspace
+// ─────────────────────────────────────────────────────────────
+
+router.get('/workspace', (req: Request, res: Response) => {
+  const user = authUser(req);
+  if (!user) {
+    res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } });
+    return;
+  }
+
+  let workspace = getWorkspace(user.id);
+  if (!workspace) {
+    workspace = provisionWorkspace(user);
+  }
+
+  res.json({ success: true, data: workspace });
+});
 
 function getPhaseLabel(phase: string): string {
   const labels: Record<string, string> = {
