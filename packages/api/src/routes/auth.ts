@@ -9,8 +9,7 @@ import {
   CognitoIdentityProviderClient,
   SignUpCommand,
   InitiateAuthCommand,
-  AdminGetUserCommand,
-  AdminUpdateUserAttributesCommand,
+  AdminConfirmSignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   DynamoDBClient,
@@ -175,12 +174,11 @@ router.post('/signup', async (req: Request, res: Response) => {
       onboardingData: '{}',
     });
 
-    // Auto-confirm for dev (skip email verification in production)
+    // Auto-confirm user
     try {
-      await cognito.send(new AdminUpdateUserAttributesCommand({
+      await cognito.send(new AdminConfirmSignUpCommand({
         UserPoolId: USER_POOL_ID,
         Username: email.toLowerCase(),
-        UserAttributes: [{ Name: 'email_verified', Value: 'true' }],
       }));
     } catch {}
 
