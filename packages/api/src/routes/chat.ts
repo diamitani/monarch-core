@@ -6,6 +6,7 @@ import { Router, Request, Response } from 'express';
 import { compile } from '@monarch/pal-compiler';
 import { agentCoreClient, sessionManager, processAgentStream } from '@monarch/agentcore-runtime';
 import { composioBridge } from '@monarch/composio-bridge';
+import { buildSkillPrompt, getSkillCatalog, ROSTR_SKILLS } from './skills.js';
 import {
   validateChatRequest,
   assertValid,
@@ -245,7 +246,7 @@ export const simpleChatRouter: import('express').Router = SimpleRouter();
 
 simpleChatRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { message, stream = false } = req.body as { message: string; stream?: boolean };
+    const { message, stream = false, skills = [] } = req.body as { message: string; stream?: boolean; skills?: string[] };
     
     if (!message || typeof message !== 'string') {
       res.status(400).json({
@@ -265,8 +266,8 @@ simpleChatRouter.post('/', async (req: Request, res: Response) => {
 
     const { extractedIntent, manifest } = palOutput;
     
-    // Build ROSTR-enhanced system prompt with phase context
-    const rostrSystemPrompt = buildRostrSystemPrompt(manifest.phase, extractedIntent);
+    // Build ROSTR-enhanced system prompt with phase context + enabled skills
+    const rostrSystemPrompt = buildRostrSystemPrompt(manifest.phase, extractedIntent, skills);
 
     if (stream) {
       // Streaming response via AWS Bedrock ConverseStream
@@ -420,7 +421,8 @@ We'll reproduce the issue, investigate systematically, implement a fix, and add 
  */
 function buildRostrSystemPrompt(
   phase: string,
-  intent: { primaryIntent?: string; domain?: string; subject?: string }
+  intent: { primaryIntent?: string; domain?: string; subject?: string },
+  enabledSkills: string[] = []
 ): string {
   const phaseInstructions: Record<string, string> = {
     'PreD': `You are in Pre-Development phase. Focus on:
@@ -451,7 +453,7 @@ Do NOT write code. Research and analyze only.`,
 - Post-mortem documentation`
   };
 
-  return `You are Monarch, a phase-aware AI assistant powered by the ROSTR Framework.
+  const basePrompt = `You are Monarch, a phase-aware AI assistant powered by the ROSTR Framework.
 
 Current Phase: ${phase}
 ${phaseInstructions[phase] || phaseInstructions['Development']}
@@ -465,4 +467,14 @@ Guidelines:
 - Provide concrete next steps
 - Flag risks and dependencies
 - Ask clarifying questions when needed`;
+
+  // Inject enabled ROSTR skills into the system prompt
+  if (enabledSkills.length > 0) {
+    const skillPrompt = buildSkillPrompt(enabledSkills, phase);
+    if (skillPrompt) {
+      return basePrompt + '\n\n' + skillPrompt;
+    }
+  }
+
+  return basePrompt;
 }

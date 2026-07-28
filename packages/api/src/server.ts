@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { createLogger, API_CONFIG } from '@monarch/shared';
 import { chatRouter, simpleChatRouter, projectsRouter, integrationsRouter } from './routes/index.js';
 import authRouter from './routes/auth.js';
+import { getSkillCatalog } from './routes/skills.js';
 import { authMiddleware, errorHandler, notFoundHandler } from './middleware/index.js';
 
 const logger = createLogger('server');
@@ -72,6 +73,11 @@ app.use(`${apiBase}/projects`, authMiddleware, chatRouter);
 app.use(`${apiBase}/integrations`, authMiddleware, integrationsRouter);
 app.use(`${apiBase}/chat`, simpleChatRouter);  // Simple chat - no auth for demo
 app.use(`${apiBase}/auth`, authRouter);        // Auth routes
+
+// Skills catalog
+app.get(`${apiBase}/skills`, (_req: Request, res: Response) => {
+  res.json({ success: true, data: getSkillCatalog() });
+});
 
 // Status endpoint
 app.get(`${apiBase}/status`, (_req: Request, res: Response) => {
