@@ -3,7 +3,7 @@
  */
 // Model IDs
 export const MODELS = {
-    CLAUDE_SONNET_4: 'anthropic.claude-sonnet-4-20250514-v1:0',
+    CLAUDE_SONNET_4: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
     CLAUDE_OPUS_4: 'global.anthropic.claude-opus-4-5-20251101-v1:0',
     CLAUDE_HAIKU: 'anthropic.claude-3-5-haiku-20241022-v1:0',
     DEEPSEEK_V3: 'deepseek.deepseek-v3-0324-v1:0'

@@ -2,13 +2,13 @@
  * Shared constants
  */
 export declare const MODELS: {
-    readonly CLAUDE_SONNET_4: "anthropic.claude-sonnet-4-20250514-v1:0";
+    readonly CLAUDE_SONNET_4: "anthropic.claude-sonnet-4-5-20250929-v1:0";
     readonly CLAUDE_OPUS_4: "global.anthropic.claude-opus-4-5-20251101-v1:0";
     readonly CLAUDE_HAIKU: "anthropic.claude-3-5-haiku-20241022-v1:0";
     readonly DEEPSEEK_V3: "deepseek.deepseek-v3-0324-v1:0";
 };
 export declare const DEFAULT_RUNTIME_CONFIG: {
-    readonly modelId: "anthropic.claude-sonnet-4-20250514-v1:0";
+    readonly modelId: "anthropic.claude-sonnet-4-5-20250929-v1:0";
     readonly temperature: 0.2;
     readonly maxTokens: 8192;
     readonly maxParallelTasks: 3;

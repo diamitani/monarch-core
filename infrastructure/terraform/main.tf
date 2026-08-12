@@ -46,7 +46,7 @@ variable "environment" {
 variable "foundation_model" {
   description = "Bedrock foundation model ID"
   type        = string
-  default     = "anthropic.claude-sonnet-4-20250514-v1:0"
+  default     = "anthropic.claude-sonnet-4-5-20250929-v1:0"
 }
 
 # IAM Role for Bedrock Agents

@@ -144,7 +144,7 @@ terraform apply
 aws bedrock-agent create-agent \
   --agent-name "Monarch-Researcher" \
   --agent-resource-role-arn arn:aws:iam::ACCOUNT:role/bedrock-agent-execution-role \
-  --foundation-model anthropic.claude-sonnet-4-20250514-v1:0 \
+  --foundation-model anthropic.claude-sonnet-4-5-20250929-v1:0 \
   --instruction "You are a research specialist agent..."
 ```
 
